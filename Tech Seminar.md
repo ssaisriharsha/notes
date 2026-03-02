@@ -136,3 +136,16 @@ ties.
 + Empirical evidence shows that PatchLM outperforms the baseline
 models in generating effective security patches.
 
+![[Pasted image 20260219184455.png]]
+This method involves fine-tuning CLMs using source code snippets.
+The used dataset comprises pairs of code segments, one representing
+the vulnerability and the other its corresponding fix.
+
+Task Definition: Let  = {(𝑥𝑖 , 𝑦𝑖)}𝑛𝑖=1 represent a dataset of 𝑛 code
+snippet pairs, where 𝑥𝑖 is a vulnerable code snippet, and 𝑦𝑖 is its
+corresponding fixed version. The objective is to train a model , such
+that for a given vulnerable code snippet 𝑥, the model predicts a fix
+𝑦 ̂ that closely approximates 𝑦, minimizing the loss function, (𝑦, ̂𝑦)
+according to defined metrics, as defined in Eq. (1):
+
+![[Pasted image 20260224184055.png]]
