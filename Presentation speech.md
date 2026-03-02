@@ -29,6 +29,41 @@ CURE uses code aware beam search strategy to avoid explosion of latent search sp
 
 First the programming language model is pretrained on massive codebases. This allows the LLM to learn about the semantics of the language before trying to fix a bug. Paralelly an NMT model is developed and is fused with the programming language model, enabling the NMT model to use the knowledge of LLM for fixing bugs. Now this fused model is trained. The training data consists of buggy code, line number of the bug and corresponding fix. The model learns how to fix bugs using this data and the knowledge gathered from pretraining of LLMs. This model is then used for inference by providing buggy code and its corresponding line number. The model then generates a patch using code aware beam search. If the patch is compilable it is a plausable patch. A plausable patch is a patch that passes all the test cases but still may not be correct. And then these plausable patches are verified by developers and accurate patches are classified as correct patches.
 
-## Limitations of CURE
+### Limitations of CURE
+
 While cure performs better than traditional NMT models, It still suffers from two major problems. Firstly, CURE assumes that the problem is pinned down to a certain line. But often times the bugs in software engineering span many lines. If a change at buggy line requires a change in any other line, CURE simply fails to do that. This is called Fault localization problem. Cure also suffers from context window limitation. If a fix at the buggy line requires a variable far away in the code, CURE fails. This is called long range dependency problem. CodeCorrector aims to solve these two problems
 
+## CodeCorrector
+
+Unlike CURE which uses NMT for APR, CodeCorrector using LLM to fix the code. They used Chatgpt 3.5 and chatgpt 4 for this purpose. It selects the context adaptively to  mitigate the context window problem. CodeCorrector uses CoT mechanism to mimick developer's way of solving a bug step by step. CodeCorrector follows three steps in order to fix a bug: Repair direction inference, Global context selection and conversational patch generation.
+
+### How does a human developer fix a bug?
+
+When provided with a buggy code and corresponding failing test case, the developer first tries to run the code and check the compiler errors. He then analyses those errors and narrows down on a repair direction. He then scans through the source files and selects the code relevant to the bug and repair direction. After selecting the relevant context and inferring the repair direction, he then uses this information to fix the bug.
+
+### CoT
+
+CodeCorrector uses CoT mechanism to mimick the developer's cognitive style of fixing the code. CoT is a prompting technique used to improve the reasoning capabilities of LLM. In this style of prompting, LLM has to reason for every step it takes, allowing LLM to generate better output, reduce hallucinations and follow complex instructions.
+
+### Working principle of CodeCorrector
+
+When provided with a buggy code, the code corrector model first extracts the local context from the file. Local context means the immediate context surrounding the buggy piece of code. This code is provided to the LLM along with the failing test case and CodeCorrector asks the LLM to summarise the errors and infer the further repair direction. Meanwhile, since it's computationally expensive to store the complete context of the code, we perform global context selection to remove the unnecessary parts and make sure that only the required context is preserved. In global context selection, the buggy file is first analysed and an Abstract Syntax Tree is constructed. The model then constructs a list that only consists of the names of methods, classes and records available, stripping away their bodies. This list is called candidate repository. After the repair direction is inferred, the model uses this candidate repository to specify what methods and classes are required for the inferred repair direction. The model then selectively loads only those classes and methods, preventing the context window limitation. The model then uses the inferred repair direction and the selected global context to generate a patch. This method is known as conversational patch generation. Here, the model is prompted with the inferred repair direction and selected global context and is allowed to generate a patch. If the generated patch causes any compilation errors or if the test cases still fail, the resulting error is passed as feedback to the LLM and this process is repeated.
+
+## PatchLM
+
+The previous two models that we discussed focuses on general bug fixing. PatchLM specifically focuses on fixing security vulnerabilities, a subset of APR. Security vulnerabilities are often silent, doesn't cause any test case to fail, silently waiting for hackers to exploit. Since test cases do not fail, above two approaches are not suitable for fixing security vulnerabilities. PatchLM overcomes this by finetuning an LLM on CVE commit hunks from NVD. Finetuning is the process of taking a pretrained LLM and adapting it to a specific task. 
+
+### Overview of PatchLM
+
+Data is collected from various sources like Girhub, gitlab etc. These commit hunks are then filtered into vulnerability-fix pairs and fed into an LLM. LLM looks through examples and learns to distingush buggy code from correct code and thus it learns to generate patches for security fixes.
+
+### Result comparision
+As we can see, CodeCorrector corrects significantly more bugs than CURE.
+
+CodeBLEU: CodeBLEU explains upto what extent a model understands the code.
+As we can see from the results, PatchLM showed a massive improvement over Base models indicating that finetuning an LLM improves its overall performace.
+
+
+## Conclusion
+
+There's no single one-fit-for-all approach. Each approach has its own set of disadvantages. NMT has a limitation of modelling long range dependencies and fault based localisation. Code corrector and PatchLM uses LLM, which means they are prone to hallucinations and Code corrector uses propreitary LLMs which are trained on internet data, so they may also be trained on the data we are testing and we do not have any means to verify. The leakage of test data into training data is called data leakage. When model encounters a data it is already trained on, it simply "cheats" instead of trying to actually reason it.

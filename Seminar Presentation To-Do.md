@@ -1,14 +1,14 @@
 - [x] Introduction
 - Need for APR
 - What is NMT
-- [ ] CURE
+- [x] CURE
 - Limitations of traditional APR
 - Key contributions of CURE
 - Beam search
 - Code Aware Beam Search
 - WordPiece and BytePair tokenization
 - Overview of CURE working principle
-- [ ] CodeCorrector
+- [x] CodeCorrector
 - Difference btw CodeCorrector and NMT techniques
 - Developer's approach for fixing a bug
 - Overview of CodeCorrector's working principle
@@ -16,11 +16,9 @@
 - Repair direction inference
 - Global context selection
 - Conversational Patch Generation
-- Result comparison between CURE and CodeCorrector
-- [ ] PatchLM
+
+- [x] PatchLM
 - How is it different from CURE and CodeCorrector
 - Overview of PatchLM's working principle
-- Experimental results
-- [ ] Limitations
-- Limitations of CURE, CodeCorrector and PatchLM
-- [ ] Conclusion
+- [x] Results analysis
+- [x] Conclusion
